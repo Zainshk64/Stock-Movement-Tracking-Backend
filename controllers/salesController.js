@@ -279,8 +279,83 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// @desc    Get single sale
+// @route   GET /api/sales/:id
+// @access  Private/Admin
+const getSale = async (req, res) => {
+  try {
+    const sale = await Sale.findById(req.params.id)
+      .populate('product', 'name price image')
+      .populate('createdBy', 'name');
+
+    if (!sale) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sale not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: sale,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Delete sale (and restore stock)
+// @route   DELETE /api/sales/:id
+// @access  Private/Admin
+const deleteSale = async (req, res) => {
+  try {
+    const sale = await Sale.findById(req.params.id);
+
+    if (!sale) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sale not found',
+      });
+    }
+
+    // Restore product stock
+    const product = await Product.findById(sale.product);
+    if (product) {
+      product.stock += sale.quantity;
+      await product.save();
+    }
+
+    // Delete related stock log
+    await StockLog.findOneAndDelete({
+      reference: `SALE-${sale._id}`,
+    });
+
+    // Delete sale
+    await Sale.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Sale deleted and stock restored',
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getSales,
+  getSale,
+  deleteSale,
   createSale,
   getSalesReports,
   getDashboardStats,

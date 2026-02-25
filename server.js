@@ -22,6 +22,27 @@ app.use('/api/products', require('./routes/productsRoutes'));
 app.use('/api/stock', require('./routes/stockRoutes'));
 app.use('/api/sales', require('./routes/salesRoutes'));
 
+
+app.use('/api/upload', require('./routes/uploadRoutes')); // Add this line
+
+// Error handler for multer
+app.use((err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File size is too large. Maximum size is 5MB.',
+    });
+  }
+  if (err.message === 'Only image files are allowed!') {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+  next(err);
+});
+
+
 // Health check
 app.get('/', (req, res) => {
   res.json({
