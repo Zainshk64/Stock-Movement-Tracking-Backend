@@ -2,12 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const seedAdmin = require('./seeders/initialAdmin');
 
 // Load env vars
 dotenv.config();
 
 // Connect to database
 connectDB();
+seedAdmin()
 
 const app = express();
 

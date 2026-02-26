@@ -35,6 +35,6 @@ router.post('/signup', signupValidation, signup);
 router.post('/login', loginValidation, login);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
-router.post('/create-admin', createAdmin);
+// router.post('/create-admin', createAdmin);
 
 module.exports = router;
